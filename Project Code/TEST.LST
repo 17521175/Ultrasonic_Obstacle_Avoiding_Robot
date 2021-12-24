@@ -1,0 +1,275 @@
+A51 MACRO ASSEMBLER  TEST                                                                 07/03/2021 18:56:38 PAGE     1
+
+
+MACRO ASSEMBLER A51 V8.02b
+OBJECT MODULE PLACED IN TEST.OBJ
+ASSEMBLER INVOKED BY: C:\Keil\C51\BIN\A51.EXE TEST.ASM SET(SMALL) DEBUG EP
+
+LOC  OBJ            LINE     SOURCE
+
+0000                   1     ORG 00H
+                       2     ;------------------------------------------------------------------------------------------
+                             ---------------------------------
+                       3     ;--------------------------------------------TEST SECTION----------------------------------
+                             ---------------------------------
+                       4     ;------------------------------------------------------------------------------------------
+                             ---------------------------------
+                       5     ;------------------------------------------------------------------------------------------
+                             ---------------------------------
+                       6     ;----------------------------------------------P1.0 -> P1.3 == IN1 ------------------------
+                             ---------------------------------
+                       7     ;----------------------------------------------P1.0 P1.1 BANH PHAI-------------------------
+                             ---------------------------------
+                       8     ;----------------------------------------------P1.2 P1.3 BANH TRAI-------------------------
+                             ---------------------------------
+                       9     ;MOV TMOD,#00100000B
+0000 7900             10     MOV R1, #0
+0002 7A00             11     MOV R2, #0
+0004 758910           12     MOV TMOD,#00010000B
+0007 759000           13     MOV P1, #0D                                             ;P1 = OUTPUT
+000A C2B0             14     CLR P3.0                                                ;P3.0 = TRIGGER
+000C D2B1             15     SETB P3.1                                               ;P3.1 = ECHO
+000E C2A0             16     CLR P2.0
+                      17     
+0010                  18     MAIN:
+                      19     ;------------------------------------------------------------------------------------
+0010 758DFA           20             MOV TH1, #0FAH 
+0013 758B25           21             MOV TL1, #25H 
+0016 D2A0             22             SETB P2.0 ;Make P2.0 HIGH
+0018 D28E             23             SETB TR1 ;Start the timer 0
+001A 308FFD           24             JNB TF1, $;Wait till the TF1 flag is set 
+001D C2A0             25             CLR P2.0 ;Make P2.0 LOW 
+001F C28F             26             CLR TF1 ;Clear the flag manually
+0021 C28E             27             CLR TR1 ;Stop the timer 1
+0023 8000             28             JMP DISTANCECHECK
+                      29     ;------------------------------------------------------------------------------------
+0025                  30     DISTANCECHECK:
+0025 7400             31             MOV A, #0D                              ;BIEN DEM
+0027 D2B0             32             SETB P3.0
+0029 1151             33             ACALL TRGDELAY
+002B C2B0             34             CLR P3.0
+002D 30B1FD           35             JNB P3.1, $                                     ; DOI ECHO TOGGLE THI BAT DAU BAT T
+                             IMER DE LUU THOI GIAN
+0030                  36             PULSEWD:
+0030 758DFF           37                     MOV TH1, #0FFH                  ;MOD 3 8 BIT, TH = TL
+0033 758B8C           38                     MOV TL1, #08CH
+0036 D28E             39                     SETB TR1
+0038 308FFD           40                     JNB TF1, $
+003B C28E             41                     CLR TR1
+003D C28F             42                     CLR TF1
+003F 04               43                     INC A
+0040 20B1ED           44                     JB P3.1, PULSEWD                ;NEU VAN CON TIN HIEU ECHO THI TIEP TUC DEM
+                              THOI GIAN
+0043 B9000A           45                     CJNE R1, #0D, BACK              ; NEU BANG R1 = 1 THI LA TURNRIGHT DANG GOI
+                              HAM SCAN, RESET R1 VA BACK
+0046 BA0007           46                     CJNE R2, #0D, BACK              ; NEU BANG R2 = 1 THI LA TURNRLEFT DANG GOI
+                              HAM SCAN, RESET R2 VA BACK
+0049                  47     CHECK:
+A51 MACRO ASSEMBLER  TEST                                                                 07/03/2021 18:56:38 PAGE     2
+
+0049 B40F00           48             CJNE A, #15D, NEXT
+004C                  49             NEXT:
+004C 4034             50                     JC STOP
+004E 5026             51                     JNC RUN
+0050                  52     BACK:
+0050 22               53     RET
+                      54     
+0051                  55     TRGDELAY:
+0051 00               56             NOP
+0052 00               57             NOP
+0053 00               58             NOP
+0054 00               59             NOP
+0055 00               60             NOP
+0056 00               61             NOP
+0057 00               62             NOP
+0058 00               63             NOP
+0059 00               64             NOP
+005A 00               65             NOP
+005B 22               66             RET
+005C                  67     DELAY:
+005C 7C02             68             MOV R4, #2
+005E                  69     DELAY1:
+005E 7DC8             70             MOV R5, #200
+0060                  71     DELAY2:
+0060 7EC8             72             MOV R6, #200
+0062                  73     DELAY3:                                 
+0062 DEFE             74             DJNZ R6, DELAY3
+0064 DDFA             75             DJNZ R5, DELAY2
+0066 DCF6             76             DJNZ R4, DELAY1
+0068 22               77             RET
+                      78     
+0069                  79     TURNDELAY:
+0069 7C03             80             MOV R4, #3
+006B                  81     TURNDELAY1:
+006B 7DB4             82             MOV R5, #180
+006D                  83     TURNDELAY2:
+006D 7EC8             84             MOV R6, #200
+006F                  85     TURNDELAY3:                                     
+006F DEFE             86             DJNZ R6, TURNDELAY3
+0071 DDFA             87             DJNZ R5, TURNDELAY2
+0073 DCF6             88             DJNZ R4, TURNDELAY1
+0075 22               89             RET
+                      90             
+                      91             
+0076                  92     RUN:
+0076 D290             93             SETB P1.0
+0078 C291             94             CLR P1.1
+007A D292             95             SETB P1.2
+007C C293             96             CLR P1.3
+007E 115C             97             ACALL DELAY
+0080 808E             98             JMP MAIN
+0082                  99     STOP:
+0082 C290            100             CLR P1.0
+0084 C291            101             CLR P1.1
+0086 C292            102             CLR P1.2
+0088 C293            103             CLR P1.3
+                     104             
+                     105     
+008A                 106     SCANRIGHT: 
+008A 758DFE          107             MOV TH1, #0FEH 
+008D 758B0D          108             MOV TL1, #0DH 
+0090 D2A0            109             SETB P2.0 ;Make P2.0 HIGH
+0092 D28E            110             SETB TR1 ;Start the timer 0
+0094 308FFD          111             JNB TF1, $ ;Wait till the TF0 flag is set 
+0097 C2A0            112             CLR P2.0 ;Make P2.0 LOW 
+0099 C28F            113             CLR TF1 ;Clear the flag manually
+A51 MACRO ASSEMBLER  TEST                                                                 07/03/2021 18:56:38 PAGE     3
+
+009B C28E            114             CLR TR1 ;Stop the timer 0
+009D 3118            115             ACALL DELAY99
+009F 7901            116             MOV R1, #1D                                                             ; CHO R1 = 
+                             1 DE GOI HAM SCAN DC TRO VE
+00A1 1125            117             ACALL DISTANCECHECK     
+00A3 F9              118             MOV R1, A
+00A4 89F0            119             MOV B, R1                                                               ; LUU KHOAN
+                             G CACH PHAI VAO B
+00A6 7900            120             MOV R1, #0D                                             
+                     121             
+                     122     
+                     123     
+00A8                 124     SCANLEFT: 
+00A8 758DF6          125             MOV TH1, #0F6H 
+00AB 758BA1          126             MOV TL1, #0A1H 
+00AE D2A0            127             SETB P2.0 ;Make P2.0 HIGH
+00B0 D28E            128             SETB TR1 ;Start the timer 0
+00B2 308FFD          129             JNB TF1, $ ;Wait till the TF0 flag is set
+00B5 C2A0            130             CLR P2.0 ;Make P2.0 LOW 
+00B7 C28F            131             CLR TF1 ;Clear the flag manually
+00B9 C28E            132             CLR TR1 ;Stop the timer 0
+00BB 3118            133             ACALL DELAY99
+00BD 7A01            134             MOV R2, #1D                                                             ; CHO R2 = 
+                             1 DE GOI HAM SCAN DC TRO VE
+00BF 1125            135             ACALL DISTANCECHECK
+00C1 B5F000          136             CJNE A, B, NEXTLEFT
+00C4                 137             NEXTLEFT:
+00C4 402A            138                     JC TURNRIGHT
+00C6 5000            139                     JNC TURNLEFT
+00C8                 140     TURNLEFT:
+                     141     ;------------------------------------------------------------------------------------
+00C8 758DFA          142             MOV TH1, #0FAH 
+00CB 758B25          143             MOV TL1, #25H 
+00CE D2A0            144             SETB P2.0 ;Make P2.0 HIGH
+00D0 D28E            145             SETB TR1 ;Start the timer 0
+00D2 308FFD          146             JNB TF1, $ ;Wait till the TF0 flag is set 
+00D5 C2A0            147             CLR P2.0 ;Make P2.0 LOW 
+00D7 C28F            148             CLR TF1 ;Clear the flag manually
+00D9 C28E            149             CLR TR1 ;Stop the timer 0
+00DB 3118            150             ACALL DELAY99
+                     151     
+                     152     ;------------------------------------------------------------------------------------
+00DD C292            153             CLR P1.2
+00DF D293            154             SETB P1.3
+00E1 D290            155             SETB P1.0
+00E3 C291            156             CLR P1.1
+00E5 1169            157             ACALL TURNDELAY
+                     158     
+                     159             
+00E7 759000          160             MOV P1, #0D
+00EA 115C            161             ACALL DELAY
+00EC 115C            162             ACALL DELAY
+00EE 0110            163             JMP MAIN                
+00F0                 164     TURNRIGHT:
+                     165     ;------------------------------------------------------------------------------------
+00F0 758DFA          166             MOV TH1, #0FAH 
+00F3 758B25          167             MOV TL1, #25H 
+00F6 D2A0            168             SETB P2.0 ;Make P2.0 HIGH
+00F8 D28E            169             SETB TR1 ;Start the timer 0
+00FA 308FFD          170             JNB TF1, $ ;Wait till the TF0 flag is set 
+00FD C2A0            171             CLR P2.0 ;Make P2.0 LOW 
+00FF C28F            172             CLR TF1 ;Clear the flag manually
+0101 C28E            173             CLR TR1 ;Stop the timer 0
+0103 3118            174             ACALL DELAY99
+                     175     ;------------------------------------------------------------------------------------
+0105 C290            176             CLR P1.0
+A51 MACRO ASSEMBLER  TEST                                                                 07/03/2021 18:56:38 PAGE     4
+
+0107 D291            177             SETB P1.1
+0109 D292            178             SETB P1.2
+010B C293            179             CLR P1.3
+010D 1169            180             ACALL TURNDELAY
+                     181     
+                     182             
+010F 759000          183             MOV P1, #0D
+0112 115C            184             ACALL DELAY
+0114 115C            185             ACALL DELAY
+0116 0110            186             JMP MAIN                
+                     187     
+0118                 188     DELAY99: 
+0118 7C32            189             MOV R4,#32H ;100us * 100us * 100us = 1s
+011A 7B64            190     LOOP1:MOV R3,#64H
+011C 7A64            191     LOOP2:MOV R2,#64H
+011E DAFE            192     LOOP3:DJNZ R2,LOOP3
+0120 DBFA            193             DJNZ R3,LOOP2
+0122 DCF6            194             DJNZ R4,LOOP1
+0124 22              195     RET
+                     196     
+                     197     END 
+A51 MACRO ASSEMBLER  TEST                                                                 07/03/2021 18:56:38 PAGE     5
+
+SYMBOL TABLE LISTING
+------ ----- -------
+
+
+N A M E             T Y P E  V A L U E   ATTRIBUTES
+
+B. . . . . . . . .  D ADDR   00F0H   A   
+BACK . . . . . . .  C ADDR   0050H   A   
+CHECK. . . . . . .  C ADDR   0049H   A   
+DELAY. . . . . . .  C ADDR   005CH   A   
+DELAY1 . . . . . .  C ADDR   005EH   A   
+DELAY2 . . . . . .  C ADDR   0060H   A   
+DELAY3 . . . . . .  C ADDR   0062H   A   
+DELAY99. . . . . .  C ADDR   0118H   A   
+DISTANCECHECK. . .  C ADDR   0025H   A   
+LOOP1. . . . . . .  C ADDR   011AH   A   
+LOOP2. . . . . . .  C ADDR   011CH   A   
+LOOP3. . . . . . .  C ADDR   011EH   A   
+MAIN . . . . . . .  C ADDR   0010H   A   
+NEXT . . . . . . .  C ADDR   004CH   A   
+NEXTLEFT . . . . .  C ADDR   00C4H   A   
+P1 . . . . . . . .  D ADDR   0090H   A   
+P2 . . . . . . . .  D ADDR   00A0H   A   
+P3 . . . . . . . .  D ADDR   00B0H   A   
+PULSEWD. . . . . .  C ADDR   0030H   A   
+RUN. . . . . . . .  C ADDR   0076H   A   
+SCANLEFT . . . . .  C ADDR   00A8H   A   
+SCANRIGHT. . . . .  C ADDR   008AH   A   
+STOP . . . . . . .  C ADDR   0082H   A   
+TF1. . . . . . . .  B ADDR   0088H.7 A   
+TH1. . . . . . . .  D ADDR   008DH   A   
+TL1. . . . . . . .  D ADDR   008BH   A   
+TMOD . . . . . . .  D ADDR   0089H   A   
+TR1. . . . . . . .  B ADDR   0088H.6 A   
+TRGDELAY . . . . .  C ADDR   0051H   A   
+TURNDELAY. . . . .  C ADDR   0069H   A   
+TURNDELAY1 . . . .  C ADDR   006BH   A   
+TURNDELAY2 . . . .  C ADDR   006DH   A   
+TURNDELAY3 . . . .  C ADDR   006FH   A   
+TURNLEFT . . . . .  C ADDR   00C8H   A   
+TURNRIGHT. . . . .  C ADDR   00F0H   A   
+
+
+REGISTER BANK(S) USED: 0 
+
+
+ASSEMBLY COMPLETE.  0 WARNING(S), 0 ERROR(S)
